@@ -75,6 +75,13 @@ where
 }
 
 fn main() {
+  // Tokio swallows panics. In order to actually crash when we panic, we have
+  // to set this custom hook.
+  std::panic::set_hook(Box::new(|panic_info| {
+    eprintln!("{}", panic_info.to_string());
+    std::process::abort();
+  }));
+
   #[cfg(windows)]
   ansi_term::enable_ansi_support().ok(); // For Windows 10
 

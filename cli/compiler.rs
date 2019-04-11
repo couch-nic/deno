@@ -111,6 +111,13 @@ fn lazy_start(parent_state: ThreadSafeState) -> ResourceId {
 
       let mut runtime = C_RUNTIME.lock().unwrap();
       runtime.spawn(lazy(move || {
+        // Tokio swallows panics. In order to actually crash when we panic, we
+        // have to set this custom hook.
+        std::panic::set_hook(Box::new(|panic_info| {
+          eprintln!("{}", panic_info.to_string());
+          std::process::abort();
+        }));
+
         worker.then(move |result| -> Result<(), ()> {
           // Close resource so the future created by
           // handle_worker_message_stream exits
